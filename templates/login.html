@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  /* Center container */
+  .auth-wrap { min-height: calc(100vh - 4rem); display: grid; place-items: center; }
+  /* Clean dark panel with neon outline */
+  .auth-panel {
+    background: #0b1220;
+    border: 1px solid rgba(56,189,248,0.35);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 0 0 1px rgba(56,189,248,0.25) inset, 0 12px 28px rgba(0,0,0,0.45), 0 0 36px rgba(37,99,235,0.15);
+    color: #e5e7eb;
+    width: 100%;
+    max-width: 420px;
+  }
+  .auth-panel .label { color: #cfd4dc; }
+  .auth-panel h2 { color: #f1f5f9; }
+  .btn-primary { background-color: #2563eb; }
+  .btn-primary:hover { background-color: #1d4ed8; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-panel">
+    <h2 class="text-2xl font-semibold mb-4">Login</h2>
+    <form method="post" class="space-y-4">
+      <div>
+        <label class="label">Username</label>
+        <input name="username" class="input" required />
+      </div>
+      <div>
+        <label class="label">Password</label>
+        <input name="password" type="password" class="input" required />
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="btn btn-primary">Sign in</button>
+        <a href="{{ url_for('signup') }}" class="text-sm">Create an account</a>
+      </div>
+    </form>
+  </div>
+  
+</div>
+{% endblock %}

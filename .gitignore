@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# Environments
+.venv/
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Flask app data/cache
+data/users.json
+data/.model_cache/
+
+# Build artifacts
+/dist/
+/build/
+
+# Local files not needed in repo
+*.sqlite3

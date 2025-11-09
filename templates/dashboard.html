@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .field-row { display: grid; grid-template-columns: 28px 1fr; gap: 0.75rem; align-items: center; }
+  .icon { width: 22px; height: 22px; opacity: 0.9; }
+  .panel-title { font-size: 1.35rem; font-weight: 600; color: #eaf2ff; letter-spacing: 0.2px; }
+  .panel-sub { font-size: 0.92rem; color: #c7d2fe; opacity: 0.75; }
+  .panel { border-radius: 1rem; padding: 1.25rem; background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06)); border: 1px solid rgba(255,255,255,0.16); box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.06); }
+  .btn-lg { padding: 0.85rem 1.25rem; border-radius: 0.75rem; font-size: 1rem; }
+  .btn-glow:hover { box-shadow: 0 0 28px rgba(34,211,238,0.55), 0 10px 28px rgba(37,99,235,0.45); }
+  .grid-auto { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+  @media (min-width: 768px) { .grid-auto { grid-template-columns: 1fr 1fr; } }
+</style>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-interest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s-6-4.35-6-9a6 6 0 0 1 12 0c0 4.65-6 9-6 9z"></path>
+      <circle cx="12" cy="12" r="2"></circle>
+    </symbol>
+    <symbol id="i-skill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2v4M2 12h4M18 12h4M12 18v4"/>
+      <circle cx="12" cy="12" r="3"/>
+    </symbol>
+    <symbol id="i-subject" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4h16v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4z"/>
+      <path d="M8 8h8M8 12h8M8 16h5"/>
+    </symbol>
+    <symbol id="i-number" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 9h14M5 15h14"/>
+    </symbol>
+    <symbol id="i-generic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 7v5l3 3"/>
+    </symbol>
+  </defs>
+  </svg>
+{% endblock %}
+{% block content %}
+<div class="panel mb-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <div class="panel-title">Career Path Finder</div>
+      <div class="panel-sub">Enter your details below. Numeric fields are normalized (0..1).</div>
+    </div>
+  </div>
+</div>
+
+<form action="{{ url_for('do_predict') }}" method="post" class="grid-auto">
+
+  {# Interest field first #}
+  {% set interest_col = (meta.filters.interest_col if meta.filters else None) %}
+  {% if interest_col %}
+    <div class="field-row">
+      <svg class="icon text-cyan-300"><use href="#i-interest"/></svg>
+      <div>
+        <label class="label">{{ interest_col|replace('_',' ')|title }}</label>
+        <select name="{{ interest_col }}" id="interest-select" class="input" required>
+          <option value="" selected disabled>Select Interest</option>
+          {% for opt in meta.categorical[interest_col] %}
+          <option value="{{ opt }}">{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  {% endif %}
+
+  {# Other categorical fields, excluding interest #}
+  {% for col, options in (meta.categorical or {}).items() %}
+    {% if col != interest_col %}
+    <div class="field-row" data-col="{{ col }}">
+      <svg class="icon text-cyan-300"><use href="#i-{{ 'subject' if 'subject' in col else 'generic' }}"/></svg>
+      <div>
+        <label class="label">{{ col|replace('_',' ')|title }}</label>
+         <select name="{{ col }}" class="input" data-dynamic="1" disabled>
+           <option value="" selected disabled>Select Interest first</option>
+         </select>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  {# CGPA numeric field (normalized 0..1) #}
+  {% if meta.numeric and meta.numeric.get('cgpa') %}
+    <div class="field-row">
+      <svg class="icon text-blue-300"><use href="#i-number"/></svg>
+      <div>
+        <label class="label">CGPA (0..1)</label>
+        <input type="number" step="0.01" min="0" max="1" name="cgpa" value="0.50" class="input" />
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="md:col-span-2 flex justify-center pt-2">
+    <button class="btn btn-lg btn-glow">Predict Career</button>
+  </div>
+</form>
+{% endblock %}
+{% block extra_body_end %}
+<script type="application/json" id="meta-json">{{ meta | tojson }}</script>
+<script>
+  (function(){
+    const metaEl = document.getElementById('meta-json');
+    const metaData = metaEl ? JSON.parse(metaEl.textContent) : {};
+    const filters = (metaData.filters && metaData.filters.by_interest) || {};
+    const interestCol = (metaData.filters && metaData.filters.interest_col) || null;
+    const allOptions = metaData.categorical || {};
+    function setOptions(selectEl, options){
+      const current = selectEl.value;
+      selectEl.innerHTML = '';
+      (options || []).forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        selectEl.appendChild(opt);
+      });
+      if (options && options.includes(current)) selectEl.value = current;
+    }
+    const interestSel = document.getElementById('interest-select');
+    function updateDependent(){
+      const val = interestSel ? interestSel.value : '';
+      const hasInterest = !!val;
+      const map = hasInterest && filters ? filters[val] : null;
+      document.querySelectorAll('select[data-dynamic="1"]').forEach(sel => {
+        const col = sel.closest('[data-col]')?.getAttribute('data-col');
+        const filtered = (map && Array.isArray(map[col])) ? map[col] : [];
+        if (!hasInterest){
+          sel.disabled = true;
+          sel.innerHTML = '<option value="" selected disabled>Select Interest first</option>';
+          return;
+        }
+        if (filtered.length === 0){
+          sel.disabled = true;
+          sel.innerHTML = '<option value="" selected disabled>No options for this Interest</option>';
+          return;
+        }
+        sel.disabled = false;
+        setOptions(sel, filtered);
+      });
+    }
+    if (interestSel){
+      interestSel.addEventListener('change', updateDependent);
+      updateDependent();
+    }
+  })();
+</script>
+{% endblock %}

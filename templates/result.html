@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .result-title { color:#eaf2ff; text-shadow:0 2px 10px rgba(37,99,235,.25); }
+  .result-card {
+    background:#0b1220;
+    border:1px solid rgba(56,189,248,.35);
+    border-radius:.9rem; padding:1.25rem;
+    box-shadow:0 0 0 1px rgba(56,189,248,.25) inset, 0 12px 28px rgba(0,0,0,.45), 0 0 24px rgba(37,99,235,.15);
+  }
+  .rec-line { font-size:1.05rem; color:#e5edff; }
+  .rec { font-weight:800; color:#ffffff; text-shadow:0 0 10px rgba(56,189,248,.35), 0 0 18px rgba(37,99,235,.25); }
+  .subtle { color:#c7d2fe; opacity:.85; }
+  .chips { margin-top:.25rem; }
+  .chip { display:inline-block; margin:.25rem .4rem .25rem 0; padding:.25rem .55rem; border-radius:9999px; background:rgba(37,99,235,.15); border:1px solid rgba(56,189,248,.35); color:#e5edff; font-size:.86rem; box-shadow:0 0 14px rgba(37,99,235,.18); }
+  .roadmap { counter-reset: step; margin-top:.5rem; }
+  .roadmap li { list-style:none; position:relative; padding-left:2rem; margin:.5rem 0; color:#eaf2ff; }
+  .roadmap li::before { counter-increment: step; content: counter(step); position:absolute; left:0; top:0; width:1.4rem; height:1.4rem; border-radius:9999px; display:grid; place-items:center; font-size:.85rem; color:#0b1020; background:linear-gradient(135deg,#2563eb,#22d3ee); box-shadow:0 0 14px rgba(34,211,238,.35); }
+  .actions { display:flex; gap:.5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<h2 class="text-2xl font-semibold mb-4 result-title">Prediction Result</h2>
+<div class="space-y-5">
+  <div class="result-card">
+    <div class="rec-line">Recommended career: <span class="rec">{{ result.career if result.career else result['career'] }}</span></div>
+  </div>
+  {% if result.top %}
+  <div class="result-card">
+    <h3 class="font-semibold subtle mb-2">Top matches</h3>
+    <div class="chips">
+      {% for c,p in result.top %}
+      <span class="chip">{{ c }} — {{ '%.2f'|format(p) }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="result-card">
+    <h3 class="font-semibold subtle mb-2">Roadmap</h3>
+    <ol class="roadmap">
+      {% for step in result.roadmap %}
+      <li>{{ step }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  <div class="actions pt-1">
+    <a class="btn" href="{{ url_for('dashboard') }}">Try Again</a>
+    <a class="btn-secondary" href="{{ url_for('history') }}">View History</a>
+    <a class="btn" href="{{ url_for('download_roadmap') }}">Download Roadmap</a>
+  </div>
+</div>
+{% endblock %}

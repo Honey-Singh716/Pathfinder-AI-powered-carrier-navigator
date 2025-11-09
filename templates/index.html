@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto text-center">
+  <h1 class="text-3xl font-bold mb-4">Career Path Finder</h1>
+  <p class="text-gray-600 mb-6">Find your best career based on your interests, CGPA, skills and subjects.</p>
+  <div class="flex gap-3 justify-center">
+    <a href="{{ url_for('login') }}" class="btn">Login</a>
+    <a href="{{ url_for('signup') }}" class="btn-secondary">Sign up</a>
+  </div>
+</div>
+{% endblock %}
